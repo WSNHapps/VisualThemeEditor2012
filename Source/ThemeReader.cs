@@ -6,145 +6,145 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using VisualThemeEditor2012.Domain;
+using VisualThemeEditor2013.Domain;
 
-namespace VisualThemeEditor2012
+namespace VisualThemeEditor2013
 {
-    public static class ThemeReader
-    {
-        public const string RegPath = @"Software\Microsoft\VisualStudio\11.0_Config\Themes";
+	public static class ThemeReader
+	{
+		public const string RegPath = @"Software\Microsoft\VisualStudio\12.0_Config\Themes";
 
-        public static IList<Theme> ReadThemes()
-        {
-            var themesReg = Registry.CurrentUser.OpenSubKey( RegPath );
-            if( themesReg == null )
-            {
-                MessageBox.Show( "Error: Could not load registry path: "+ RegPath );
-                return null;
-            }
-                
-            var themesGuids = themesReg.GetSubKeyNames();
+		public static IList<Theme> ReadThemes()
+		{
+			var themesReg = Registry.CurrentUser.OpenSubKey(RegPath);
+			if (themesReg == null)
+			{
+				MessageBox.Show("Error: Could not load registry path: " + RegPath);
+				return null;
+			}
 
-            if ( !themesGuids.Any() )
-            {
-                MessageBox.Show( "Could not find any themes." );
-                return null;
-            }
+			var themesGuids = themesReg.GetSubKeyNames();
 
-            var themes = new List<Theme>();
+			if (!themesGuids.Any())
+			{
+				MessageBox.Show("Could not find any themes.");
+				return null;
+			}
 
-            foreach ( var g in themesGuids )
-            {
-                var themeReg = themesReg.OpenSubKey( g );
+			var themes = new List<Theme>();
 
-                var themeName = themeReg.GetValue("").ToString();
+			foreach (var g in themesGuids)
+			{
+				var themeReg = themesReg.OpenSubKey(g);
 
-                var theme = new Theme() {Name = themeName, Guid = Guid.Parse( g )};
-                themes.Add( theme );
+				var themeName = themeReg.GetValue("").ToString();
 
-                foreach( var catName in themeReg.GetSubKeyNames() )
-                {
-                    var categoryData = themeReg.OpenSubKey( catName ).GetValue( "Data" ) as byte[];
-                    if( categoryData == null ) continue;
+				var theme = new Theme() { Name = themeName, Guid = Guid.Parse(g) };
+				themes.Add(theme);
 
-                    var category = UnpackColorCategory( categoryData);
-                    category.Name = catName;
-                    theme.Categories.Add( category );
-                }
+				foreach (var catName in themeReg.GetSubKeyNames())
+				{
+					var categoryData = themeReg.OpenSubKey(catName).GetValue("Data") as byte[];
+					if (categoryData == null) continue;
 
-            }
-            return themes;
-        }
+					var category = UnpackColorCategory(categoryData);
+					category.Name = catName;
+					theme.Categories.Add(category);
+				}
 
-        private static Category UnpackColorCategory(byte[] data)
-        {
-            var category = new Category();
+			}
+			return themes;
+		}
 
-            using( var ms = new MemoryStream( data ) )
-            using( var reader = new BinaryReader(ms))
-            {
-                category.Header = ms.ReadStruct<CategoryHeader>( );
+		private static Category UnpackColorCategory(byte[] data)
+		{
+			var category = new Category();
 
-                for( var i = 0; i < category.Header.ColorCount ; i++)
-                {
-                    var colorRecord = UnpackColorRecord( reader );
-                    category.ColorRecords.Add( colorRecord );
-                }
-                //var alignCheck = reader.ReadInt32();
-                //Debug.Assert( alignCheck == category.Header.CategoryDataSize, "The header (and color reads) alignment is not correct." );
-            }
-            return category;
-        }
+			using (var ms = new MemoryStream(data))
+			using (var reader = new BinaryReader(ms))
+			{
+				category.Header = ms.ReadStruct<CategoryHeader>();
 
-        private static ColorRecord UnpackColorRecord(BinaryReader reader)
-        {
-            var recordNameLen = reader.ReadInt32();
-            var nameBytes = reader.ReadBytes( recordNameLen );
+				for (var i = 0; i < category.Header.ColorCount; i++)
+				{
+					var colorRecord = UnpackColorRecord(reader);
+					category.ColorRecords.Add(colorRecord);
+				}
+				//var alignCheck = reader.ReadInt32();
+				//Debug.Assert( alignCheck == category.Header.CategoryDataSize, "The header (and color reads) alignment is not correct." );
+			}
+			return category;
+		}
 
-            var colorRecord = new ColorRecord
-                {
-                    Name = Encoding.UTF8.GetString( nameBytes ),
-                };
-            colorRecord.BackgroundPos = reader.BaseStream.Position;
-            colorRecord.Background = UnpackColor( reader );
-            colorRecord.ForegroundPos = reader.BaseStream.Position;
-            colorRecord.Foreground = UnpackColor( reader );
-            return colorRecord;
-        }
+		private static ColorRecord UnpackColorRecord(BinaryReader reader)
+		{
+			var recordNameLen = reader.ReadInt32();
+			var nameBytes = reader.ReadBytes(recordNameLen);
 
-        private static Color? UnpackColor(BinaryReader reader)
-        {
-            var hasValue = reader.ReadByte();
-            if( hasValue == 0)
-            {
-                return null;
-            }
-            
-            var r = reader.ReadByte();
-            var g = reader.ReadByte();
-            var b = reader.ReadByte();
-            var a = reader.ReadByte();
+			var colorRecord = new ColorRecord
+				{
+					Name = Encoding.UTF8.GetString(nameBytes),
+				};
+			colorRecord.BackgroundPos = reader.BaseStream.Position;
+			colorRecord.Background = UnpackColor(reader);
+			colorRecord.ForegroundPos = reader.BaseStream.Position;
+			colorRecord.Foreground = UnpackColor(reader);
+			return colorRecord;
+		}
 
-            return Color.FromArgb( a, r, g, b );
-        }
-    }
-    public static class ThemeWriter
-    {
-        public static void InjectColor(Color? fgColor, Color? bgColor, Theme theme, Category category, ColorRecord colorRec)
-        {
-            var regPath = Path.Combine( ThemeReader.RegPath, theme.Guid.ToString("B"), category.Name );
-            var reg = Registry.CurrentUser.OpenSubKey( regPath, true );
-            var colorData = reg.GetValue( "Data" ) as byte[];
+		private static Color? UnpackColor(BinaryReader reader)
+		{
+			var hasValue = reader.ReadByte();
+			if (hasValue == 0)
+			{
+				return null;
+			}
 
-            using( var ms = new MemoryStream( colorData ) )
-            using( var bw = new BinaryWriter( ms))
-            {
-                if( bgColor != null )
-                {
-                    ms.Seek( colorRec.BackgroundPos, SeekOrigin.Begin );
-                    WriteColor( bgColor.Value, bw );
-                }
-                if( fgColor != null)
-                {
-                    ms.Seek( colorRec.ForegroundPos, SeekOrigin.Begin );
-                    WriteColor( fgColor.Value, bw );
-                }
+			var r = reader.ReadByte();
+			var g = reader.ReadByte();
+			var b = reader.ReadByte();
+			var a = reader.ReadByte();
 
-                bw.Flush();
-                bw.Close();
-                var setData = ms.ToArray();
+			return Color.FromArgb(a, r, g, b);
+		}
+	}
+	public static class ThemeWriter
+	{
+		public static void InjectColor(Color? fgColor, Color? bgColor, Theme theme, Category category, ColorRecord colorRec)
+		{
+			var regPath = Path.Combine(ThemeReader.RegPath, theme.Guid.ToString("B"), category.Name);
+			var reg = Registry.CurrentUser.OpenSubKey(regPath, true);
+			var colorData = reg.GetValue("Data") as byte[];
 
-                reg.SetValue( "Data", setData, RegistryValueKind.Binary );
-            }
-        }
+			using (var ms = new MemoryStream(colorData))
+			using (var bw = new BinaryWriter(ms))
+			{
+				if (bgColor != null)
+				{
+					ms.Seek(colorRec.BackgroundPos, SeekOrigin.Begin);
+					WriteColor(bgColor.Value, bw);
+				}
+				if (fgColor != null)
+				{
+					ms.Seek(colorRec.ForegroundPos, SeekOrigin.Begin);
+					WriteColor(fgColor.Value, bw);
+				}
 
-        private static void WriteColor(Color color, BinaryWriter bw)
-        {
-            bw.Write( (byte)1 );
-            bw.Write( color.R );
-            bw.Write( color.G );
-            bw.Write( color.B );
-            bw.Write( color.A );
-        }
-    }
+				bw.Flush();
+				bw.Close();
+				var setData = ms.ToArray();
+
+				reg.SetValue("Data", setData, RegistryValueKind.Binary);
+			}
+		}
+
+		private static void WriteColor(Color color, BinaryWriter bw)
+		{
+			bw.Write((byte)1);
+			bw.Write(color.R);
+			bw.Write(color.G);
+			bw.Write(color.B);
+			bw.Write(color.A);
+		}
+	}
 }

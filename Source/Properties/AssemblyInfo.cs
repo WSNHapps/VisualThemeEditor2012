@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "VisualThemeEditor2012" )]
+[assembly: AssemblyTitle( "VisualThemeEditor2013" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
 [assembly: AssemblyCompany( "" )]
-[assembly: AssemblyProduct( "VisualThemeEditor2012" )]
-[assembly: AssemblyCopyright( "Copyright ©  2012" )]
+[assembly: AssemblyProduct( "VisualThemeEditor2013" )]
+[assembly: AssemblyCopyright( "" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible( false )]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid( "880076f8-ab01-4270-9b52-93405df4ec28" )]
+[assembly: Guid("475A0924-7CEC-4D47-8AC9-174657A9B0F5")]
 
 // Version information for an assembly consists of the following four values:
 //

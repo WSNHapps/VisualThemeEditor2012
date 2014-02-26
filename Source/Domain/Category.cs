@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 
-namespace VisualThemeEditor2012.Domain
+namespace VisualThemeEditor2013.Domain
 {
-    public class Category
-    {
-        public Category()
-        {
-            this.ColorRecords = new List<ColorRecord>();
-        }
+	public class Category
+	{
+		public Category()
+		{
+			this.ColorRecords = new List<ColorRecord>();
+		}
 
-        public string Name { get; set; }
-        public List<ColorRecord> ColorRecords { get; set; }
+		public string Name { get; set; }
+		public List<ColorRecord> ColorRecords { get; set; }
 
-        public CategoryHeader Header { get; set; }
+		public CategoryHeader Header { get; set; }
 
-    }
+	}
 }

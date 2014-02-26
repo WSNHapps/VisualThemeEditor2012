@@ -7,8 +7,8 @@
     <ProjectGuid>{FDFAF6A4-E371-49E8-97A8-54D1884489F6}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualThemeEditor2012</RootNamespace>
-    <AssemblyName>VisualThemeEditor2012</AssemblyName>
+    <RootNamespace>VisualThemeEditor2013</RootNamespace>
+    <AssemblyName>VisualThemeEditor2013</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
